@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>SIRALARA — Sistem Rantai Nilai Rumput Laut Kaltara</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  :root{
+    --ink:#12271f;--sea:#0e3a34;--sea-2:#123f38;--tide:#2f8f83;--tide-dk:#217064;
+    --gold:#d8a038;--gold-dk:#b5822a;--leak:#b4462f;--leak-soft:#e8d3cb;
+    --mist:#e9efe9;--paper:#fbfcfa;--line:#cdd9cf;--muted:#5c6b62;
+    --shadow:0 1px 2px rgba(18,39,31,.05),0 12px 30px -18px rgba(18,39,31,.35);
+  }
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{margin:0;background:var(--mist);color:var(--ink);
+    font-family:"IBM Plex Sans",system-ui,-apple-system,sans-serif;font-size:15px;line-height:1.5;
+    background-image:radial-gradient(circle at 15% -10%,rgba(47,143,131,.10),transparent 45%),radial-gradient(circle at 100% 0%,rgba(216,160,56,.08),transparent 40%);}
+  h1,h2,h3{font-family:"Archivo",system-ui,sans-serif;margin:0;letter-spacing:-.01em}
+  .mono{font-family:"IBM Plex Mono",ui-monospace,monospace}
+  .eyebrow{font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
+  .wrap{max-width:1120px;margin:0 auto;padding:0 20px}
+
+  header{background:var(--sea);color:#eaf3ef;border-bottom:3px solid var(--gold)}
+  .topbar{display:flex;align-items:center;gap:16px;padding:16px 0;flex-wrap:wrap}
+  .brand{display:flex;align-items:baseline;gap:12px;flex:1;min-width:220px}
+  .logo{font-family:"Archivo";font-weight:800;font-size:24px;letter-spacing:.02em;color:#fff}
+  .logo b{color:var(--gold)}
+  .tagline{font-size:12.5px;color:#a9c6bd;max-width:340px;line-height:1.35}
+  .pill{font-family:"IBM Plex Mono";font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;
+    border:1px solid rgba(216,160,56,.5);color:var(--gold);padding:4px 9px;border-radius:2px;white-space:nowrap}
+  .engine-strip{background:var(--sea-2);color:#9fc0b7;font-family:"IBM Plex Mono";font-size:11px;
+    letter-spacing:.04em;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.06)}
+  .engine-strip b{color:var(--gold)}
+
+  main{padding:26px 0 60px}
+  section{margin-bottom:22px}
+  .sec-head{display:flex;align-items:baseline;gap:12px;margin:0 0 12px}
+  .sec-head .n{font-family:"IBM Plex Mono";font-size:12px;color:var(--tide-dk);font-weight:500}
+  .sec-head h2{font-size:17px;font-weight:700;color:var(--ink)}
+  .card{background:var(--paper);border:1px solid var(--line);border-radius:10px;box-shadow:var(--shadow)}
+
+  .hero{display:grid;grid-template-columns:1fr 1.15fr;gap:16px}
+  .hero-lead{padding:24px}
+  .hero-lead .eyebrow{color:var(--leak)}
+  .bignum{font-family:"Archivo";font-weight:800;font-size:clamp(38px,6.5vw,58px);line-height:.98;color:var(--leak);margin:10px 0 6px;letter-spacing:-.02em}
+  .bignum span{font-size:.44em;font-weight:600;color:var(--muted);letter-spacing:0}
+  .hero-lead p{color:#33413a;font-size:14.5px;margin:8px 0 0;max-width:44ch}
+  .hero-lead .subline{margin-top:14px;font-size:13px;color:var(--muted);border-top:1px dashed var(--line);padding-top:12px}
+
+  .ladder{padding:20px 22px}
+  .ladder h3{font-size:13px;font-family:"IBM Plex Sans";font-weight:600;color:var(--muted);margin-bottom:2px}
+  .ladder .cap{font-size:12px;color:var(--muted);margin-bottom:16px}
+  .rung{position:relative;margin:9px 0;display:flex;align-items:center;gap:12px}
+  .rung .bar{height:34px;border-radius:5px;display:flex;align-items:center;padding:0 12px;color:#fff;
+    font-family:"IBM Plex Mono";font-size:13px;font-weight:500;white-space:nowrap;transition:width .5s cubic-bezier(.2,.7,.2,1)}
+  .rung .lab{font-size:12.5px;color:var(--ink);font-weight:500}
+  .rung .lab small{display:block;color:var(--muted);font-weight:400;font-size:11px}
+  .r1 .bar{background:#9aa79e}.r2 .bar{background:var(--tide)}.r3 .bar{background:var(--gold)}
+  .ladder .gapnote{margin-top:14px;background:var(--leak-soft);border-left:3px solid var(--leak);
+    padding:9px 12px;border-radius:0 6px 6px 0;font-size:12.5px;color:#6e3323}
+  .ladder .gapnote b{color:var(--leak)}
+
+  .sim{display:grid;grid-template-columns:340px 1fr;gap:16px}
+  .controls{padding:22px}
+  .controls h3{font-size:14px;font-weight:700;margin-bottom:4px}
+  .controls .hint{font-size:12px;color:var(--muted);margin-bottom:18px}
+  .ctl{margin-bottom:18px}
+  .ctl label{display:flex;justify-content:space-between;align-items:baseline;font-size:13px;margin-bottom:7px}
+  .ctl label .v{font-family:"IBM Plex Mono";font-weight:500;color:var(--tide-dk);font-size:13px}
+  input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:5px;border-radius:4px;
+    background:var(--line);outline:none;cursor:pointer}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;height:19px;width:19px;border-radius:50%;
+    background:var(--sea);border:3px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.3);cursor:pointer}
+  input[type=range]::-moz-range-thumb{height:16px;width:16px;border-radius:50%;background:var(--sea);border:3px solid #fff;cursor:pointer}
+  .reset{margin-top:2px;background:none;border:1px solid var(--line);color:var(--muted);font-family:"IBM Plex Mono";
+    font-size:11px;letter-spacing:.08em;text-transform:uppercase;padding:8px 12px;border-radius:5px;cursor:pointer;transition:.15s}
+  .reset:hover{border-color:var(--tide);color:var(--tide-dk)}
+
+  .results{display:flex;flex-direction:column;gap:14px}
+  .kpis{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .kpi{background:var(--paper);border:1px solid var(--line);border-radius:9px;padding:15px 16px;position:relative;overflow:hidden}
+  .kpi::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px}
+  .kpi.gold::before{background:var(--gold)}.kpi.tide::before{background:var(--tide)}
+  .kpi.sea::before{background:var(--sea)}.kpi.leaf::before{background:var(--tide-dk)}
+  .kpi .k-lab{font-size:11.5px;color:var(--muted);letter-spacing:.02em;margin-bottom:6px;min-height:30px}
+  .kpi .k-val{font-family:"Archivo";font-weight:700;font-size:23px;line-height:1;letter-spacing:-.01em}
+  .kpi .k-sub{font-family:"IBM Plex Mono";font-size:11px;color:var(--muted);margin-top:5px}
+  .kpi .k-sub b{color:var(--tide-dk)}
+  .stripstat{display:flex;gap:20px;flex-wrap:wrap;background:var(--paper);border:1px solid var(--line);border-radius:9px;padding:12px 16px}
+  .stripstat div{font-size:12px;color:var(--muted)}
+  .stripstat b{font-family:"Archivo";font-size:16px;color:var(--ink);display:block}
+  .chartcard{background:var(--paper);border:1px solid var(--line);border-radius:9px;padding:16px 18px 10px}
+  .chartcard .c-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px}
+  .chartcard .c-head span{font-size:13px;font-weight:600}
+  .chartcard .c-head em{font-style:normal;font-family:"IBM Plex Mono";font-size:11px;color:var(--muted)}
+  .chartbox{position:relative;height:140px}
+  .chartbox.tall{height:250px}
+
+  .io{display:grid;grid-template-columns:1.15fr .85fr;gap:16px;align-items:stretch}
+  .io .panel{padding:18px 20px;display:flex;flex-direction:column}
+  .quadlegend{display:flex;gap:14px;flex-wrap:wrap;font-size:11px;color:var(--muted);margin-top:8px}
+  .quadlegend b{color:var(--ink)}
+  .io-note{font-size:12px;color:var(--muted);margin-top:6px;line-height:1.45}
+  .quaddetail{margin-top:10px;background:var(--mist);border:1px solid var(--line);border-radius:8px;padding:10px 12px;font-size:12.5px;color:var(--ink);min-height:40px;transition:.15s}
+  .quaddetail b{font-family:"Archivo"}
+  .quaddetail .mono{font-family:"IBM Plex Mono";color:var(--tide-dk);font-size:11.5px}
+  .quaddetail .badge{display:inline-block;font-family:"IBM Plex Mono";font-size:10px;padding:2px 7px;border-radius:20px;margin-left:6px;font-weight:500}
+  .quaddetail .hintline{color:var(--muted)}
+  .cmp{margin:6px 0 4px}
+  .cmp .row{margin-bottom:12px}
+  .cmp .row .top{display:flex;justify-content:space-between;font-size:12.5px;margin-bottom:5px}
+  .cmp .row .top .m{font-family:"IBM Plex Mono";font-weight:500}
+  .cmp .track{height:12px;background:var(--mist);border-radius:6px;overflow:hidden}
+  .cmp .fill{height:100%;border-radius:6px;transition:width .5s}
+  .cmp .a .fill{background:#9aa79e}.cmp .c .fill{background:var(--gold)}
+  .verdict{background:var(--sea);color:#eaf3ef;border-radius:9px;padding:14px 16px;font-size:13px;line-height:1.5;margin-top:auto}
+  .verdict b{color:var(--gold)}
+  .tag-src{display:inline-block;font-family:"IBM Plex Mono";font-size:10px;letter-spacing:.06em;text-transform:uppercase;
+    background:rgba(47,143,131,.12);color:var(--tide-dk);padding:3px 7px;border-radius:3px}
+
+  .row2{display:grid;grid-template-columns:1.4fr 1fr;gap:16px;align-items:start}
+  .panel{padding:20px 22px}
+  .panel .note{font-size:12px;color:var(--muted);margin-top:12px;line-height:1.45}
+  .tag-ml{display:inline-block;font-family:"IBM Plex Mono";font-size:10px;letter-spacing:.08em;text-transform:uppercase;
+    background:rgba(47,143,131,.12);color:var(--tide-dk);padding:3px 7px;border-radius:3px;margin-left:6px}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th,td{text-align:left;padding:9px 8px;border-bottom:1px solid var(--line)}
+  th{font-family:"IBM Plex Mono";font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:500}
+  td.num{font-family:"IBM Plex Mono";text-align:right}
+  tr:last-child td{border-bottom:none}
+  .chip{display:inline-block;font-size:11px;padding:2px 8px;border-radius:20px;font-weight:500}
+  .chip.rl{background:rgba(216,160,56,.16);color:var(--gold-dk)}.chip.ud{background:rgba(47,143,131,.16);color:var(--tide-dk)}
+  .chip.kp{background:rgba(180,70,47,.14);color:var(--leak)}.chip.nl{background:rgba(14,58,52,.12);color:var(--sea)}
+
+  .method{background:transparent;border:1px dashed var(--line);border-radius:10px;padding:20px 22px}
+  .method h3{font-size:13px;font-weight:700;margin-bottom:10px}
+  .method ul{margin:0;padding-left:18px;color:var(--muted);font-size:12.5px;line-height:1.6}
+  .method li{margin-bottom:4px}
+  .method code{font-family:"IBM Plex Mono";background:#fff;border:1px solid var(--line);padding:1px 5px;border-radius:3px;font-size:11.5px;color:var(--ink)}
+  footer{color:var(--muted);font-size:12px;text-align:center;padding:8px 0 34px}
+
+  @media(max-width:900px){.hero{grid-template-columns:1fr}.sim{grid-template-columns:1fr}.io{grid-template-columns:1fr}.row2{grid-template-columns:1fr}}
+  @media(max-width:520px){.wrap{padding:0 14px}.kpis{grid-template-columns:1fr}.bignum{font-size:42px}}
+  @media(prefers-reduced-motion:reduce){*{transition:none!important}}
+
+  .nav{position:sticky;top:0;z-index:30;background:rgba(14,58,52,.97);backdrop-filter:blur(6px);border-bottom:1px solid rgba(255,255,255,.08)}
+  .nav .wrap{display:flex;gap:2px;flex-wrap:wrap;padding:7px 20px}
+  .nav a{color:#cfe3dc;font-family:"IBM Plex Mono";font-size:11px;letter-spacing:.05em;text-transform:uppercase;text-decoration:none;padding:6px 10px;border-radius:5px;transition:.15s}
+  .nav a:hover{background:rgba(255,255,255,.09);color:#fff}
+  .dlbtn{display:inline-block;font-family:"IBM Plex Mono";font-size:11px;letter-spacing:.05em;text-transform:uppercase;background:var(--tide);color:#fff;border:none;padding:8px 14px;border-radius:6px;cursor:pointer;margin-top:12px}
+  .dlbtn:hover{background:var(--tide-dk)}
+  .tblwrap{overflow-x:auto;margin-top:8px}
+  select.sel{width:100%;max-width:360px;padding:9px 10px;border:1px solid var(--line);border-radius:6px;font-family:"IBM Plex Sans";font-size:13px;background:#fff;color:var(--ink)}
+  .prof-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:12px 0}
+  .prof-grid .c{background:var(--mist);border:1px solid var(--line);border-radius:8px;padding:11px 13px}
+  .prof-grid .c .l{font-size:11px;color:var(--muted)}
+  .prof-grid .c .v{font-family:"Archivo";font-weight:700;font-size:19px;color:var(--ink)}
+  .sup td{font-size:12.5px}
+  .metode p{font-size:13.5px;color:#33413a;margin:8px 0}
+  .metode b{color:var(--ink)}
+  .sortb{font-family:"IBM Plex Mono";font-size:10.5px;letter-spacing:.05em;text-transform:uppercase;background:var(--mist);border:1px solid var(--line);color:var(--muted);padding:5px 9px;border-radius:5px;cursor:pointer;margin-right:3px;margin-top:4px}
+  .sortb.on{background:var(--sea);color:#fff;border-color:var(--sea)}
+  @media(max-width:620px){.prof-grid{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap topbar">
+    <div class="brand">
+      <div class="logo">SIRA<b>LARA</b></div>
+      <div class="tagline">Sistem Rantai Nilai Rumput Laut — dukungan keputusan hilirisasi &amp; penangkapan nilai untuk Kalimantan Utara</div>
+    </div>
+    <div class="pill">Prototipe · data contoh</div>
+  </div>
+</header>
+<div class="engine-strip"><div class="wrap">⚙ Ditenagai <b>Tabel Input-Output BPS Kalimantan Utara 2016</b> (17 sektor) · pengganda Leontief + pemutakhiran RAS</div></div>
+
+<nav class="nav"><div class="wrap">
+  <a href="#beranda">Beranda</a><a href="#data">Data &amp; Unduh</a><a href="#profil">Profil Sektor</a>
+  <a href="#model">Model RAS</a><a href="#simulator">Simulator Shock</a><a href="#dampak">Dampak Sektor</a><a href="#metode">Metodologi</a>
+</div></nav>
+<main>
+<div class="wrap">
+
+  <!-- HERO -->
+  <section class="hero" id="beranda">
+    <div class="card hero-lead">
+      <div class="eyebrow">Nilai tambah yang belum tertangkap · per tahun</div>
+      <div class="bignum" id="heroLeak">Rp0<span> potensi/th</span></div>
+      <p>Kaltara memproduksi rumput laut dalam jumlah besar, tapi menjualnya sebagai bahan mentah kering dan mengekspornya lewat pelabuhan luar daerah — sehingga selisih nilai olahan tidak tertangkap di dalam provinsi.</p>
+      <div class="subline">Angka ini adalah <b>selisih nilai</b> antara menjual kering vs mengolah lokal, atas volume &amp; harga di panel simulasi. Geser asumsinya untuk melihat berapa yang bisa direbut kembali.</div>
+    </div>
+    <div class="card ladder">
+      <div class="eyebrow">Tangga nilai · 1 kg rumput laut</div>
+      <h3>Semakin diolah di daerah, semakin besar nilai yang tinggal</h3>
+      <div class="cap">Harga acuan (dapat disesuaikan di simulator)</div>
+      <div class="rung r1"><div class="bar" style="width:12%">Rp8.500</div><div class="lab">Kering mentah<small>kondisi mayoritas saat ini</small></div></div>
+      <div class="rung r2"><div class="bar" style="width:52%">Rp80.000</div><div class="lab">Karagenan semi-murni (ATC)<small>target realistis tahap awal</small></div></div>
+      <div class="rung r3"><div class="bar" style="width:100%">Rp160.000</div><div class="lab">Karagenan murni<small>potensi jangka menengah</small></div></div>
+      <div class="gapnote">Lompatan dari kering ke semi-murni ≈ <b>9× nilai</b>. Setiap kg yang diolah di Kaltara, bukan dikirim mentah, menahan selisih itu tetap di daerah.</div>
+    </div>
+  </section>
+
+  <!-- SIMULATOR -->
+  <section>
+    <div class="sec-head"><span class="n">01</span><h2>Simulator dampak hilirisasi <span class="tag-src" style="font-size:9px;margin-left:6px">pengganda I-O riil</span></h2></div>
+    <div class="sim">
+      <div class="card controls">
+        <h3>Asumsi &amp; target kebijakan</h3>
+        <div class="hint">Geser untuk membandingkan kondisi saat ini dengan skenario intervensi.</div>
+        <div class="ctl"><label>Volume rumput laut kering setara <span class="v"><span id="vVolume">50.000</span> ton/th</span></label><input type="range" id="volume" min="10000" max="150000" step="5000" value="50000"></div>
+        <div class="ctl"><label>Target diolah di dalam daerah <span class="v"><span id="vOlah">30</span>%</span></label><input type="range" id="olah" min="0" max="60" step="5" value="30"></div>
+        <div class="ctl"><label>Target ekspor langsung via Kaltara <span class="v"><span id="vEkspor">70</span>%</span></label><input type="range" id="ekspor" min="0" max="100" step="5" value="70"></div>
+        <div class="ctl"><label>Harga karagenan semi-murni <span class="v">Rp<span id="vHarga">80.000</span>/kg</span></label><input type="range" id="harga" min="50000" max="120000" step="5000" value="80000"></div>
+        <button class="reset" id="reset">↺ Kembali ke asumsi dasar</button>
+      </div>
+
+      <div class="results">
+        <div class="kpis">
+          <div class="kpi sea">
+            <div class="k-lab">Dampak output total di ekonomi Kaltara</div>
+            <div class="k-val" id="kOutput">Rp0</div>
+            <div class="k-sub">efek pengganda I-O <b>1,381×</b> (sektor pengolahan)</div>
+          </div>
+          <div class="kpi gold">
+            <div class="k-lab">Tambahan PDRB (nilai tambah total)</div>
+            <div class="k-val" id="kPdrb">Rp0</div>
+            <div class="k-sub">pengganda nilai tambah <b>0,811</b></div>
+          </div>
+          <div class="kpi tide">
+            <div class="k-lab">Tambahan PAD (estimasi)</div>
+            <div class="k-val" id="kPad">Rp0</div>
+            <div class="k-sub">1,5% dari PDRB tambahan</div>
+          </div>
+          <div class="kpi leaf">
+            <div class="k-lab">Lapangan kerja (estimasi)</div>
+            <div class="k-val" id="kJobs">0</div>
+            <div class="k-sub">pengganda TK · A &amp; C eksak (Sakernas 2016)</div>
+          </div>
+        </div>
+
+        <div class="stripstat">
+          <div>Nilai tambah langsung hilirisasi<b id="sDirect">Rp0</b></div>
+          <div>Kenaikan harga di tingkat petani<b id="sPetani">+0%</b></div>
+          <div>Injeksi permintaan olahan (basis)<b id="sInj">Rp0</b></div>
+        </div>
+
+        <div class="chartcard">
+          <div class="c-head"><span>Nilai ekonomi tertangkap per kg — saat ini vs skenario</span><em>Rp/kg rata-rata terealisasi</em></div>
+          <div class="chartbox"><canvas id="barChart"></canvas></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- I-O MODULE -->
+  <section>
+    <div class="sec-head"><span class="n">02</span><h2>Analisis input-output — mengapa hilirisasi berdampak</h2></div>
+    <div class="io">
+      <div class="card panel">
+        <div class="eyebrow">Peta keterkaitan sektor · Kaltara 2016</div>
+        <h3 style="font-size:15px;margin:4px 0 2px">Backward vs forward linkage (17 sektor)</h3>
+        <div class="chartbox tall" style="margin-top:10px"><canvas id="quadChart"></canvas></div>
+        <div id="quadDetail" class="quaddetail"><span class="hintline">Ketuk titik mana pun untuk melihat sektornya.</span></div>
+        <div class="quadlegend">
+          <span><b>Kanan-atas</b> leading · <b>kanan-bawah</b> pendorong (hilir) · <b>kiri-atas</b> penarik (hulu) · <b>kiri-bawah</b> tertinggal</span>
+        </div>
+        <div class="io-note">Rumput laut ada di sektor <b>Pertanian/Perikanan (A)</b> — kuadran hulu: memasok bahan baku tapi lemah menstimulasi ekonomi lokal. Panah menuju <b>Industri Pengolahan (C)</b> adalah arah hilirisasi. (Listrik-Gas berada di luar skala sebagai sektor leading.)</div>
+      </div>
+
+      <div class="card panel">
+        <div class="eyebrow">Pengganda output · per Rp1 permintaan akhir</div>
+        <div class="cmp">
+          <div class="row a"><div class="top"><span>A · Pertanian &amp; Perikanan (kini)</span><span class="m">1,192</span></div><div class="track"><div class="fill" style="width:46%"></div></div></div>
+          <div class="row c"><div class="top"><span>C · Industri Pengolahan (hilirisasi)</span><span class="m">1,381</span></div><div class="track"><div class="fill" style="width:100%"></div></div></div>
+        </div>
+        <div class="io-note" style="margin-top:2px">Backward linkage: A = 0,88 (bawah rata-rata) → C = 1,02 (atas rata-rata). Forward linkage A = 1,10.</div>
+        <div class="verdict">
+          Data BPS Kaltara sendiri membuktikannya: memindahkan aktivitas dari sektor primer ke <b>pengolahan</b> menaikkan dampak dari Rp1,19 ke <b>Rp1,38</b> output total per Rp1 permintaan, dan mengubah sektor dari penstimulasi lemah menjadi kuat. Argumen hilirisasi terbukti dari matriks, bukan asumsi.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- DATA & UNDUH -->
+  <section id="data">
+    <div class="sec-head"><span class="n">03</span><h2>Data &amp; unduh</h2></div>
+    <div class="card panel">
+      <div class="eyebrow">Pengganda &amp; keterkaitan · 17 sektor · basis I-O 2016</div>
+      <h3 style="font-size:15px;margin:4px 0 2px">Tabel pengganda</h3>
+      <div class="tblwrap"><table id="tblMult"></table></div>
+      <button class="dlbtn" onclick="dlMult()">⬇ Unduh CSV pengganda</button>
+    </div>
+    <div class="card panel" style="margin-top:16px">
+      <div class="eyebrow">Pengganda output hasil RAS · 2016–2025</div>
+      <h3 style="font-size:15px;margin:4px 0 2px">Evolusi pengganda per sektor</h3>
+      <div class="tblwrap"><table id="tblRas"></table></div>
+      <button class="dlbtn" onclick="dlRas()">⬇ Unduh CSV RAS</button>
+      <div class="note">Workbook Excel lengkap (I-O, simulasi shock, tenaga kerja, RAS) tersedia terpisah. Bila kamu meletakkan file .xlsx di folder yang sama dengan situs ini, tautan unduh bisa ditambahkan.</div>
+    </div>
+  </section>
+
+  <!-- PROFIL SEKTOR -->
+  <section id="profil">
+    <div class="sec-head"><span class="n">04</span><h2>Profil sektor</h2></div>
+    <div class="card panel">
+      <div class="eyebrow">Pilih sektor untuk melihat profil lengkap &amp; pemasok utamanya</div>
+      <select id="profilSektor" class="sel" style="margin:12px 0"></select>
+      <div id="profilBox"></div>
+    </div>
+  </section>
+
+  <span id="model"></span>
+  <!-- RAS MODULE -->
+  <section>
+    <div class="sec-head"><span class="n">05</span><h2>Model RAS — pemutakhiran struktur ekonomi 2016–2025</h2></div>
+    <div class="sim">
+      <div class="card controls">
+        <h3>Tahun matriks I-O</h3>
+        <div class="hint">RAS memutakhirkan matriks 2016 memakai komposisi PDRB tiap tahun (berjalan langsung di sini). Geser tahun — pengganda &amp; simulator shock di bawah ikut memakai matriks tahun ini.</div>
+        <div class="ctl"><label>Tahun <span class="v" id="vRasYear">2025</span></label>
+          <input type="range" id="rasYear" min="2016" max="2025" step="1" value="2025"></div>
+        <div class="io-note">Basis: Tabel I-O BPS 2016 + PDRB harga berlaku 2016–2025. Mesin: RAS biproporsional + kebalikan Leontief.</div>
+      </div>
+      <div class="results">
+        <div class="kpis">
+          <div class="kpi gold"><div class="k-lab">Pengganda Industri Pengolahan (C)</div><div class="k-val" id="rasC">–</div><div class="k-sub" id="rasCsub">hilirisasi</div></div>
+          <div class="kpi sea"><div class="k-lab">Pengganda Pertanian/Perikanan (A)</div><div class="k-val" id="rasA">–</div><div class="k-sub">sektor primer</div></div>
+          <div class="kpi tide"><div class="k-lab">Pengganda Pertambangan (B)</div><div class="k-val" id="rasB">–</div><div class="k-sub">ekstraktif</div></div>
+          <div class="kpi leaf"><div class="k-lab">Selisih C−A (keunggulan hilirisasi)</div><div class="k-val" id="rasGap">–</div><div class="k-sub">positif = robust</div></div>
+        </div>
+        <div class="chartcard">
+          <div class="c-head"><span>Evolusi pengganda output — RAS 2016–2025</span><em>Type I</em></div>
+          <div class="chartbox tall"><canvas id="rasChart"></canvas></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+<span id="simulator"></span>
+  <!-- SHOCK SIMULATOR -->
+  <section>
+    <div class="sec-head"><span class="n">06</span><h2>Simulator guncangan (shock) permintaan pemerintah</h2></div>
+    <div class="sim">
+      <div class="card controls">
+        <h3>Injeksi permintaan akhir</h3>
+        <div class="hint">Pilih sektor penerima belanja/investasi pemerintah, lalu lihat riak dampaknya ke seluruh output ekonomi Kaltara (model Leontief demand-pull).</div>
+        <div class="io-note" style="margin-top:8px">Matriks yang dipakai: <b id="shockYearLbl">2025</b> — diatur di modul RAS di atas.</div>
+        <div class="ctl"><label style="display:block;margin-bottom:7px">Sektor penerima injeksi</label>
+          <select id="shockSector" style="width:100%;padding:9px 10px;border:1px solid var(--line);border-radius:6px;font-family:'IBM Plex Sans';font-size:13px;background:#fff;color:var(--ink)"></select></div>
+        <div class="ctl"><label>Besar injeksi <span class="v">Rp<span id="vShock">500</span> miliar</span></label>
+          <input type="range" id="shock" min="50" max="2000" step="50" value="500"></div>
+        <div class="io-note">Riak dihitung <code>ΔX = (I−A)⁻¹ · ΔF</code>: injeksi ke satu sektor memicu output di sektornya sendiri (langsung) dan seluruh pemasoknya (tak langsung).</div>
+      </div>
+      <div class="results">
+        <div class="kpis">
+          <div class="kpi sea"><div class="k-lab">Dampak output total</div><div class="k-val" id="shOut">Rp0</div><div class="k-sub" id="shMult">pengganda —</div></div>
+          <div class="kpi gold"><div class="k-lab">Tambahan PDRB (nilai tambah)</div><div class="k-val" id="shPdrb">Rp0</div><div class="k-sub">seluruh sektor</div></div>
+          <div class="kpi leaf"><div class="k-lab">Dampak tak langsung (spillover)</div><div class="k-val" id="shIndir">Rp0</div><div class="k-sub">ke sektor pemasok</div></div>
+          <div class="kpi gold"><div class="k-lab">Lapangan kerja terdampak</div><div class="k-val" id="shJobs">0</div><div class="k-sub">pengganda TK · e·ΔX</div></div>
+        </div>
+        <div class="chartcard">
+          <div class="c-head"><span>Riak output antar-sektor — 8 sektor paling terdampak</span><em>Rp miliar</em></div>
+          <div class="chartbox tall"><canvas id="shockChart"></canvas></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- DAMPAK PER SEKTOR -->
+  <section id="dampak">
+    <div class="sec-head"><span class="n">07</span><h2>Dampak ekonomi per sektor — PDRB · PAD · lapangan kerja</h2></div>
+    <div class="sim">
+      <div class="card controls">
+        <h3>Injeksi hilirisasi / belanja</h3>
+        <div class="hint">Dampak ekonomi menyeluruh dari tambahan permintaan akhir ke tiap sektor (basis I-O 2016). Bandingkan ke-17 sektor pada tiga tujuan sekaligus, lalu urutkan sesuai prioritas kebijakan.</div>
+        <div class="ctl"><label>Besar injeksi <span class="v">Rp<span id="vDmp">100</span> miliar</span></label><input type="range" id="dmp" min="10" max="1000" step="10" value="100"></div>
+        <div class="io-note">Urutkan menurut:<div id="sortBtns" style="margin-top:6px"></div></div>
+        <div class="io-note" style="margin-top:10px">PAD = 1,5% dari tambahan PDRB (asumsi tarif penerimaan daerah; dapat disesuaikan).</div>
+        <div class="io-note" style="margin-top:8px">Sektor terbaik <b>berbeda menurut tujuan</b>: Industri Pengolahan unggul di total output; Pertanian unggul di PDRB &amp; lapangan kerja per rupiah (padat karya, rasio nilai tambah tinggi).</div>
+      </div>
+      <div class="results">
+        <div class="chartcard"><div class="c-head"><span>Peringkat 17 sektor per Rp<span id="dmpLbl">100</span> miliar injeksi</span><em>dampak ekonomi-wide</em></div><div class="tblwrap"><table id="tblDampak"></table></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PRICE + ZONASI -->
+  <section>
+    <div class="sec-head"><span class="n">08</span><h2>Prediksi harga &amp; peta komoditas</h2></div>
+    <div class="row2">
+      <div class="card panel">
+        <div class="eyebrow">Harga rumput laut kering · Rp/kg</div>
+        <h3 style="font-size:15px;margin:4px 0 2px">Riwayat &amp; proyeksi harga <span class="tag-ml">slot model ML</span></h3>
+        <div class="chartbox tall" style="margin-top:12px"><canvas id="priceChart"></canvas></div>
+        <div class="note"><b>Mengapa penting:</b> harga rumput laut sangat fluktuatif — sempat jatuh ke ~Rp6.000/kg pada 2024 mengikuti pasar global. Modul ini memproyeksikan harga (garis putus-putus) dengan pita ketidakpastian, agar petani &amp; koperasi punya sinyal jual. Pada implementasi nyata, tren sederhana ini diganti model deret waktu / ML.</div>
+      </div>
+      <div class="card panel">
+        <div class="eyebrow">Zonasi budidaya · penetapan DKP Kaltara</div>
+        <h3 style="font-size:15px;margin:4px 0 12px">Fokus per kabupaten/kota</h3>
+        <table>
+          <thead><tr><th>Wilayah</th><th>Komoditas</th><th style="text-align:right">Prioritas</th></tr></thead>
+          <tbody>
+            <tr><td>Nunukan</td><td><span class="chip rl">Rumput laut</span></td><td class="num">Tinggi</td></tr>
+            <tr><td>Bulungan</td><td><span class="chip ud">Udang windu</span></td><td class="num">Tinggi</td></tr>
+            <tr><td>Tana Tidung</td><td><span class="chip ud">Udang windu</span></td><td class="num">Sedang</td></tr>
+            <tr><td>Tarakan</td><td><span class="chip kp">Kepiting</span></td><td class="num">Sedang</td></tr>
+            <tr><td>Malinau</td><td><span class="chip nl">Ikan nila</span></td><td class="num">Sedang</td></tr>
+          </tbody>
+        </table>
+        <div class="note">Pilot SIRALARA diarahkan ke <b>Nunukan</b> sebagai kampung rumput laut, lalu direplikasi mengikuti zonasi yang sudah ditetapkan.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- METHODOLOGY -->
+  <section>
+    <div class="method">
+      <h3>⚙︎ Metodologi &amp; asumsi (transparan — bukan klaim final)</h3>
+      <ul>
+        <li>Pengganda dihitung dari kebalikan Leontief <code>(I − A)⁻¹</code> atas Tabel I-O BPS Kaltara 2016; keterkaitan ke depan via kebalikan Ghosh. <b>RAS</b> dipakai untuk memutakhirkan matriks 2016 ke tahun terbaru dengan margin PDRB.</li>
+        <li>Injeksi permintaan olahan = volume × porsi diolah × harga semi-murni. <b>Dampak output total</b> = injeksi × pengganda output sektor Industri Pengolahan (1,381). <b>Tambahan PDRB</b> = injeksi × pengganda nilai tambah (0,811).</li>
+        <li>Tambahan PAD = PDRB tambahan × tarif penerimaan daerah efektif (asumsi 1,5%).</li>
+        <li>Lapangan kerja = PDRB tambahan ÷ produktivitas tenaga kerja (asumsi Rp180 jt/pekerja/th). <b>Angka ini masih asumsi</b> — pengganda tenaga kerja resmi butuh vektor satelit tenaga kerja per sektor (Sakernas / komponen kompensasi I-O).</li>
+        <li>Keterbatasan: rumput laut masih agregat di dalam sektor A, jadi pengganda A dipakai sebagai proksi primer dan dikontraskan dengan sektor C. Model Leontief mengasumsikan koefisien tetap &amp; linear. Volume setara-kering wajib dikalibrasi dengan data DKP/BPS Kaltara.</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- METODOLOGI -->
+  <section id="metode">
+    <div class="sec-head"><span class="n">09</span><h2>Metodologi &amp; sumber</h2></div>
+    <div class="card panel metode">
+      <div class="eyebrow">Sumber data</div>
+      <p><b>Tabel Input-Output BPS Kaltara 2016</b> (17 lapangan usaha, transaksi domestik) · <b>PDRB harga berlaku 2016–2025</b> (BPS) · <b>Sakernas / Tabel 10.3 Penduduk Bekerja</b> Agustus 2016 (BPS).</p>
+      <div class="eyebrow" style="margin-top:10px">Metode</div>
+      <p><b>Pengganda &amp; keterkaitan</b> dari kebalikan Leontief (I−A)⁻¹ dan Ghosh (I−B)⁻¹. <b>RAS</b> biproporsional memutakhirkan matriks 2016 memakai komposisi PDRB tiap tahun — berjalan langsung di halaman ini. <b>Pengganda tenaga kerja</b> e·L, dengan jembatan data tenaga kerja 9→17 sektor.</p>
+      <div class="eyebrow" style="margin-top:10px">Asumsi &amp; keterbatasan (disebut apa adanya)</div>
+      <p>Rumput laut masih agregat dalam sektor Pertanian/Perikanan (A) — penggandanya proksi primer, dikontraskan dengan Industri Pengolahan (C). Data tenaga kerja: sektor A, B, C, F eksak; sektor jasa/utilitas dipecah proporsional output. Model Leontief mengasumsikan koefisien tetap &amp; linear. Volume rumput laut adalah asumsi yang wajib dikalibrasi dengan data DKP/BPS.</p>
+      <div class="eyebrow" style="margin-top:10px">Validasi</div>
+      <p>Seluruh perhitungan lolos uji: identitas RAS→2016 = Z0, konvergensi, non-negativitas, viabilitas ρ(A)&lt;1, konsistensi pengganda Σmᵢ(I−A)=1, dan keseimbangan (I−A)ΔX=ΔF. Mesin di halaman ini menghasilkan angka identik dengan workbook Excel &amp; skrip Python.</p>
+    </div>
+  </section>
+
+  <footer>SIRALARA · prototipe pendukung keputusan · pengganda dari Tabel I-O BPS Kaltara 2016 · angka lain ilustratif dan dapat disesuaikan</footer>
+</div>
+</main>
+
+<script>
+const fmt=new Intl.NumberFormat('id-ID');
+function rupiahBig(v){const a=Math.abs(v);
+  if(a>=1e12)return 'Rp'+(v/1e12).toLocaleString('id-ID',{maximumFractionDigits:2})+' T';
+  if(a>=1e9) return 'Rp'+(v/1e9 ).toLocaleString('id-ID',{maximumFractionDigits:1})+' M';
+  if(a>=1e6) return 'Rp'+(v/1e6 ).toLocaleString('id-ID',{maximumFractionDigits:1})+' jt';
+  return 'Rp'+fmt.format(Math.round(v));}
+
+/* --- pengganda I-O riil dari Tabel BPS Kaltara 2016 (io_multipliers_kaltara.json) --- */
+const IO={A:{out:1.192,va:0.917,bl:0.883,fl:1.098},C:{out:1.381,va:0.811,bl:1.02,fl:0.88}};
+const IO_ALL=[
+ {k:'A',n:'Pertanian/Perikanan',bl:0.88,fl:1.10,out:1.192},{k:'B',n:'Pertambangan',bl:0.93,fl:0.79,out:1.249},
+ {k:'C',n:'Industri Pengolahan',bl:1.02,fl:0.88,out:1.381},{k:'E',n:'Air/Limbah',bl:0.88,fl:0.87,out:1.193},
+ {k:'F',n:'Konstruksi',bl:0.92,fl:0.81,out:1.247},{k:'G',n:'Perdagangan',bl:0.91,fl:0.98,out:1.233},
+ {k:'H',n:'Transportasi',bl:1.00,fl:1.03,out:1.347},{k:'I',n:'Akomodasi/Makan',bl:1.01,fl:0.92,out:1.366},
+ {k:'J',n:'Info-Komunikasi',bl:0.95,fl:0.83,out:1.277},{k:'K',n:'Keuangan',bl:0.88,fl:1.26,out:1.188},
+ {k:'L',n:'Real Estate',bl:0.89,fl:0.78,out:1.199},{k:'MN',n:'Jasa Perusahaan',bl:0.91,fl:1.45,out:1.232},
+ {k:'O',n:'Adm. Pemerintahan',bl:0.98,fl:0.76,out:1.318},{k:'P',n:'Pendidikan',bl:0.92,fl:0.76,out:1.243},
+ {k:'Q',n:'Kesehatan',bl:0.99,fl:0.73,out:1.343},{k:'RSTU',n:'Jasa Lainnya',bl:0.99,fl:1.09,out:1.341}
+];
+
+const DEF={volume:50000,olah:30,ekspor:70,harga:80000};
+const HARGA_KERING=8500;
+const OLAH_NOW=0.03,EKSPOR_NOW=0.10;
+const PAD_RATE=0.015,PRODUCTIVITY=180e6,PETANI_MAX=0.15;
+
+const el=id=>document.getElementById(id);
+const state={...DEF};
+
+function compute(){
+  const volKg=state.volume*1000, gap=state.harga-HARGA_KERING;
+  const olahT=state.olah/100, eksporT=state.ekspor/100;
+  const leakNow=volKg*gap*(1-OLAH_NOW);
+  const processedKg=volKg*Math.max(0,olahT-OLAH_NOW);
+  const injection=processedKg*state.harga;
+  const directVA=processedKg*gap;
+  const outputImpact=injection*IO.C.out;
+  const pdrbImpact=injection*IO.C.va;
+  const pad=pdrbImpact*PAD_RATE;
+  const jobs=Math.round(EMPMULT_C_2016*injection/1e6);
+  const petaniPct=PETANI_MAX*eksporT;
+  const realizedNow=HARGA_KERING+gap*OLAH_NOW, realizedScn=HARGA_KERING+gap*olahT;
+  return {leakNow,injection,directVA,outputImpact,pdrbImpact,pad,jobs,petaniPct,realizedNow,realizedScn};
+}
+
+let barChart,priceChart,quadChart;
+function render(){
+  const r=compute();
+  el('heroLeak').innerHTML=rupiahBig(r.leakNow)+'<span> potensi/th</span>';
+  el('kOutput').textContent=rupiahBig(r.outputImpact);
+  el('kPdrb').textContent=rupiahBig(r.pdrbImpact);
+  el('kPad').textContent=rupiahBig(r.pad);
+  el('kJobs').textContent=fmt.format(r.jobs);
+  el('sDirect').textContent=rupiahBig(r.directVA);
+  el('sPetani').textContent='+'+(r.petaniPct*100).toFixed(1)+'%';
+  el('sInj').textContent=rupiahBig(r.injection);
+
+  el('vVolume').textContent=fmt.format(state.volume);
+  el('vOlah').textContent=state.olah;el('vEkspor').textContent=state.ekspor;el('vHarga').textContent=fmt.format(state.harga);
+  [['volume',10000,150000],['olah',0,60],['ekspor',0,100],['harga',50000,120000]].forEach(([id,mn,mx])=>{
+    const p=((state[id]-mn)/(mx-mn))*100;
+    el(id).style.background=`linear-gradient(to right,var(--tide) 0%,var(--tide) ${p}%,var(--line) ${p}%,var(--line) 100%)`;
+  });
+  barChart.data.datasets[0].data=[Math.round(r.realizedNow),Math.round(r.realizedScn)];barChart.update();
+}
+
+function initBar(){
+  barChart=new Chart(el('barChart'),{type:'bar',
+    data:{labels:['Saat ini','Skenario'],datasets:[{data:[0,0],backgroundColor:['#9aa79e','#d8a038'],borderRadius:6,barThickness:56}]},
+    options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>'Rp'+fmt.format(c.raw)+'/kg'}}},
+      scales:{x:{beginAtZero:true,grid:{color:'#e7ede8'},ticks:{callback:v=>'Rp'+fmt.format(v),font:{family:'IBM Plex Mono',size:10},color:'#5c6b62'}},
+              y:{grid:{display:false},ticks:{font:{family:'IBM Plex Sans',size:13,weight:'600'},color:'#12271f'}}}}});
+}
+
+const quadLines={id:'quadLines',afterDatasetsDraw(c){
+  const {ctx,scales:{x,y},chartArea:a}=c;
+  const px=x.getPixelForValue(1), py=y.getPixelForValue(1);
+  ctx.save();ctx.strokeStyle='rgba(92,107,98,.35)';ctx.setLineDash([4,4]);ctx.lineWidth=1;
+  ctx.beginPath();ctx.moveTo(px,a.top);ctx.lineTo(px,a.bottom);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(a.left,py);ctx.lineTo(a.right,py);ctx.stroke();ctx.setLineDash([]);
+  const A=IO_ALL.find(s=>s.k==='A'),C=IO_ALL.find(s=>s.k==='C');
+  const ax=x.getPixelForValue(A.bl),ay=y.getPixelForValue(A.fl);
+  const cx=x.getPixelForValue(C.bl),cy=y.getPixelForValue(C.fl);
+  ctx.strokeStyle='#b5822a';ctx.fillStyle='#b5822a';ctx.lineWidth=1.6;ctx.setLineDash([5,3]);
+  ctx.beginPath();ctx.moveTo(ax,ay);ctx.lineTo(cx,cy);ctx.stroke();ctx.setLineDash([]);
+  const ang=Math.atan2(cy-ay,cx-ax);
+  ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(cx-8*Math.cos(ang-0.4),cy-8*Math.sin(ang-0.4));
+  ctx.lineTo(cx-8*Math.cos(ang+0.4),cy-8*Math.sin(ang+0.4));ctx.closePath();ctx.fill();
+  ctx.font='600 11px "IBM Plex Sans"';ctx.fillStyle='#12271f';ctx.fillText('A · primer',ax-6,ay-8);
+  ctx.fillStyle='#b5822a';ctx.fillText('C · pengolahan',cx+8,cy+4);
+  ctx.font='italic 10px "IBM Plex Sans"';ctx.fillStyle='#5c6b62';ctx.fillText('arah hilirisasi',(ax+cx)/2-18,(ay+cy)/2-6);
+  ctx.restore();
+}};
+
+let quadSel=-1;
+function quadColor(k){return k==='A'?'#12271f':k==='C'?'#d8a038':'#b8c4bc';}
+function renderQuadDetail(){
+  const d=el('quadDetail');
+  if(quadSel<0){d.innerHTML='<span class="hintline">Ketuk titik mana pun untuk melihat sektornya.</span>';return;}
+  const s=IO_ALL[quadSel];
+  const t=s.bl>1&&s.fl>1?['Leading','#217064']:s.bl>1?['Pendorong (hilir)','#b5822a']:s.fl>1?['Penarik (hulu)','#0e3a34']:['Tertinggal','#b4462f'];
+  d.innerHTML=`<b>${s.k} · ${s.n}</b><span class="badge" style="background:${t[1]}22;color:${t[1]}">${t[0]}</span><br>`+
+    `<span class="mono">Pengganda output ${s.out.toFixed(3)}</span> · <span class="mono">BL ${s.bl.toFixed(2)}</span> · <span class="mono">FL ${s.fl.toFixed(2)}</span>`;
+}
+function updateQuad(){
+  const ds=quadChart.data.datasets[0];
+  ds.pointRadius=IO_ALL.map((_,i)=>i===quadSel?10:6);
+  ds.borderColor=IO_ALL.map((_,i)=>i===quadSel?'#12271f':'#fff');
+  ds.borderWidth=IO_ALL.map((_,i)=>i===quadSel?2.5:1);
+  quadChart.update();renderQuadDetail();
+}
+function initQuad(){
+  const pts=IO_ALL.map(s=>({x:s.bl,y:s.fl}));
+  quadChart=new Chart(el('quadChart'),{type:'scatter',
+    data:{datasets:[{data:pts,
+      backgroundColor:IO_ALL.map(s=>quadColor(s.k)),
+      pointRadius:IO_ALL.map(()=>6),pointHoverRadius:10,borderColor:'#fff',borderWidth:1}]},
+    options:{responsive:true,maintainAspectRatio:false,
+      onClick:(e,els)=>{if(els.length){quadSel=els[0].index;updateQuad();}},
+      plugins:{legend:{display:false},
+        tooltip:{callbacks:{label:c=>{const s=IO_ALL[c.dataIndex];return `${s.k} · ${s.n} — pengganda ${s.out.toFixed(3)}, BL ${s.bl.toFixed(2)}, FL ${s.fl.toFixed(2)}`;}}}},
+      scales:{
+        x:{min:0.85,max:1.10,title:{display:true,text:'Backward linkage (menstimulasi ekonomi)',font:{family:'IBM Plex Mono',size:10},color:'#5c6b62'},grid:{color:'#eef2ee'},ticks:{font:{family:'IBM Plex Mono',size:10},color:'#5c6b62'}},
+        y:{min:0.70,max:1.55,title:{display:true,text:'Forward linkage (memasok sektor lain)',font:{family:'IBM Plex Mono',size:10},color:'#5c6b62'},grid:{color:'#eef2ee'},ticks:{font:{family:'IBM Plex Mono',size:10},color:'#5c6b62'}}
+      }},plugins:[quadLines]});
+  renderQuadDetail();
+}
+
+function initPrice(){
+  const months=[];const start=new Date(2023,0,1);
+  for(let i=0;i<36;i++){const d=new Date(start.getFullYear(),start.getMonth()+i,1);months.push(d.toLocaleDateString('id-ID',{month:'short',year:'2-digit'}));}
+  const hist=[9000,9200,9400,9300,9600,9800,10200,10500,10300,10000,9700,9400,9200,8800,8200,7400,6600,6000,6200,6800,7300,7800,8200,8600,8900,9200,9500,9800,10100,10400,10200,9900,9700,9500,9600,9800];
+  const proj=[];let last=hist[hist.length-1];const projMonths=[];
+  for(let i=0;i<12;i++){const d=new Date(2026,i,1);projMonths.push(d.toLocaleDateString('id-ID',{month:'short',year:'2-digit'}));last+=120;proj.push(Math.round(last));}
+  const allLabels=[...months,...projMonths];
+  const histData=[...hist,...Array(12).fill(null)];
+  const projData=[...Array(35).fill(null),hist[35],...proj];
+  const bandUp=[...Array(35).fill(null),hist[35],...proj.map((v,i)=>Math.round(v*(1+0.06+i*0.006)))];
+  const bandLo=[...Array(35).fill(null),hist[35],...proj.map((v,i)=>Math.round(v*(1-0.06-i*0.006)))];
+  priceChart=new Chart(el('priceChart'),{type:'line',
+    data:{labels:allLabels,datasets:[
+      {label:'Batas atas',data:bandUp,borderWidth:0,pointRadius:0,fill:'+1',backgroundColor:'rgba(47,143,131,.12)'},
+      {label:'Batas bawah',data:bandLo,borderWidth:0,pointRadius:0,fill:false},
+      {label:'Riwayat',data:histData,borderColor:'#0e3a34',borderWidth:2,pointRadius:0,tension:.3},
+      {label:'Proyeksi',data:projData,borderColor:'#d8a038',borderWidth:2,borderDash:[5,4],pointRadius:0,tension:.3}
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
+      plugins:{legend:{display:false},tooltip:{filter:i=>i.datasetIndex>=2,callbacks:{label:c=>c.dataset.label+': Rp'+fmt.format(c.raw)}}},
+      scales:{x:{grid:{display:false},ticks:{maxTicksLimit:8,font:{family:'IBM Plex Mono',size:9},color:'#5c6b62'}},
+              y:{grid:{color:'#e7ede8'},ticks:{callback:v=>fmt.format(v),font:{family:'IBM Plex Mono',size:10},color:'#5c6b62'}}}}});
+}
+
+['volume','olah','ekspor','harga'].forEach(id=>el(id).addEventListener('input',e=>{state[id]=+e.target.value;render();}));
+el('reset').addEventListener('click',()=>{Object.assign(state,DEF);['volume','olah','ekspor','harga'].forEach(id=>el(id).value=DEF[id]);render();});
+
+/* ==== Mesin RAS + Leontief (berjalan di dashboard) — Tabel I-O 2016 & PDRB 2016-2025 ==== */
+const CODES=['A','B','C','D','E','F','G','H','I','J','K','L','MN','O','P','Q','RSTU'];
+const NAMES=['Pertanian/Perikanan','Pertambangan','Industri Pengolahan','Listrik-Gas','Air/Limbah','Konstruksi','Perdagangan','Transportasi','Akomodasi/Makan','Info-Komunikasi','Keuangan','Real Estate','Jasa Perusahaan','Adm. Pemerintahan','Pendidikan','Kesehatan','Jasa Lainnya'];
+const NN=17;
+const RAS_Z0=[[1442113.0, 5.0, 4363268.0, 7.0, 0.0, 73743.0, 616.0, 3015.0, 289883.0, 14.0, 174.0, 0.0, 617.0, 23519.0, 12069.0, 1385.0, 33724.0], [5297.0, 38347.0, 679.0, 329092.0, 0.0, 921621.0, 0.0, 7.0, 53.0, 2.0, 110.0, 1964.0, 0.0, 10.0, 3.0, 5.0, 37.0], [90326.0, 1277946.0, 479388.0, 5250.0, 520.0, 324974.0, 692062.0, 359241.0, 151958.0, 2992.0, 26697.0, 7822.0, 6370.0, 43705.0, 17413.0, 30577.0, 51077.0], [9506.0, 141029.0, 45453.0, 843742.0, 504.0, 215.0, 7732.0, 57047.0, 22868.0, 141119.0, 8782.0, 1132.0, 459.0, 86412.0, 8953.0, 10782.0, 15964.0], [192.0, 1812.0, 655.0, 151.0, 335.0, 328.0, 2576.0, 1607.0, 222.0, 1.0, 249.0, 65.0, 1.0, 563.0, 76.0, 318.0, 1113.0], [480361.0, 89821.0, 20.0, 52.0, 33.0, 403964.0, 0.0, 598.0, 4814.0, 181.0, 9943.0, 178111.0, 0.0, 646.0, 257.0, 484.0, 3347.0], [209560.0, 316366.0, 735782.0, 17999.0, 3421.0, 473052.0, 204210.0, 328450.0, 128194.0, 60941.0, 9319.0, 13281.0, 17416.0, 50605.0, 12185.0, 20407.0, 21106.0], [68458.0, 718170.0, 187540.0, 9265.0, 1852.0, 114121.0, 542898.0, 1016414.0, 30287.0, 14855.0, 6009.0, 3090.0, 113962.0, 376382.0, 33692.0, 27570.0, 8646.0], [6146.0, 166108.0, 11972.0, 959.0, 342.0, 5974.0, 43390.0, 47322.0, 3016.0, 1229.0, 4882.0, 356.0, 7190.0, 182857.0, 30110.0, 39834.0, 15109.0], [1824.0, 9002.0, 2616.0, 2715.0, 201.0, 209.0, 8587.0, 40299.0, 483.0, 171168.0, 11778.0, 75.0, 7907.0, 59910.0, 6062.0, 2855.0, 5405.0], [29629.0, 149793.0, 5500.0, 25611.0, 73.0, 1022.0, 35790.0, 383476.0, 1095.0, 4206.0, 80815.0, 461.0, 644.0, 14355.0, 2648.0, 4270.0, 3374.0], [0.0, 7883.0, 0.0, 0.0, 19.0, 0.0, 0.0, 0.0, 0.0, 0.0, 4432.0, 2.0, 0.0, 53554.0, 24982.0, 5815.0, 6358.0], [4788.0, 619733.0, 2308.0, 48165.0, 615.0, 21599.0, 2446.0, 8187.0, 81.0, 729.0, 29864.0, 780.0, 5736.0, 247974.0, 48762.0, 46547.0, 3071.0], [0.0, 88605.0, 4158.0, 4882.0, 44.0, 1785.0, 18701.0, 121902.0, 565.0, 36.0, 3265.0, 435.0, 1305.0, 10592.0, 2107.0, 706.0, 431.0], [68.0, 1160.0, 435.0, 78.0, 3.0, 161.0, 360.0, 2515.0, 65.0, 28.0, 4277.0, 4.0, 11848.0, 1225.0, 38843.0, 709.0, 163.0], [833.0, 1885.0, 1706.0, 22.0, 159.0, 323.0, 320.0, 289.0, 135.0, 56.0, 608.0, 85.0, 248.0, 441.0, 243.0, 3183.0, 335.0], [38715.0, 5345.0, 45261.0, 283.0, 694.0, 1417.0, 7739.0, 127054.0, 17050.0, 129.0, 792.0, 150.0, 46665.0, 11574.0, 3761.0, 2023.0, 173131.0]];
+const RAS_X0=[15237049.0, 19924783.0, 19020121.0, 1713089.0, 61947.0, 12021780.0, 9056893.0, 9641015.0, 2326137.0, 2505021.0, 1401862.0, 1318394.0, 1262244.0, 5125055.0, 1322456.0, 791840.0, 1384189.0];
+const RAS_PDRB=[[11568458.5, 12548196.1, 13754149.1, 15312911.8, 16535728.6, 18084945.2, 19554494.6, 20956728.6, 21698796.4, 23207746.0], [16403463.1, 21051543.7, 23460722.8, 25993190.9, 25571625.0, 30397757.7, 50200399.5, 50337798.8, 42163994.4, 41873081.6], [6708025.7, 7675890.7, 8076101.9, 8878283.8, 9209369.1, 9929874.7, 10773850.1, 11297463.3, 12153163.0, 13657264.4], [33393.3, 41156.7, 46627.1, 50767.7, 58715.6, 61453.7, 69186.9, 86102.5, 86582.0, 90943.3], [41323.4, 48245.8, 53191.6, 56220.3, 62971.2, 68067.9, 73302.3, 78138.3, 86226.3, 89609.1], [8481885.9, 9575488.0, 11047982.3, 13260620.3, 14329253.7, 15135245.2, 15199541.8, 16892483.1, 18993988.6, 21378382.0], [7634116.4, 8733166.4, 9990122.4, 11588181.6, 12232134.9, 13857589.1, 15476144.6, 17052968.3, 19074978.3, 21419338.8], [4525412.0, 5374661.1, 6081511.3, 6806164.1, 6782286.2, 6986806.5, 8714531.6, 10366319.4, 11066296.2, 11619116.3], [1024530.5, 1208056.4, 1399325.3, 1559957.1, 1537521.2, 1667883.5, 1913625.1, 2132801.7, 2432418.0, 2769145.8], [1520545.9, 1764486.2, 1982550.9, 2241920.1, 2559509.8, 2940894.3, 3333647.3, 3627347.1, 3856504.4, 4097322.6], [819202.3, 888321.9, 976880.6, 1058666.9, 1120280.1, 1248103.5, 1408827.1, 1607947.1, 1731166.5, 1820112.3], [554758.7, 604822.2, 665913.0, 739166.6, 766284.5, 820516.0, 868918.1, 905382.1, 958548.0, 1031381.2], [174673.9, 189242.0, 200949.8, 211989.6, 226881.5, 245049.8, 267802.0, 281426.8, 296489.3, 310969.4], [3671738.5, 4016666.8, 4316644.4, 4784423.3, 4977643.8, 5192660.2, 5530708.9, 5926336.3, 6238971.1, 6202263.0], [1713014.7, 1909417.4, 2081618.3, 2358382.8, 2590241.8, 2823477.6, 3088475.2, 3363210.7, 3625622.3, 3755862.1], [722356.0, 790372.9, 858331.1, 978319.6, 1139346.1, 1261848.9, 1303594.8, 1379799.9, 1443199.6, 1534515.9], [444914.5, 507832.6, 556320.7, 630763.0, 723416.4, 808047.9, 897906.6, 986369.3, 1069754.6, 1168691.0]];
+const Vcoef=[0.784083, 0.702991, 0.536993, 0.092839, 0.444654, 0.555142, 0.69569, 0.427812, 0.459598, 0.603351, 0.780441, 0.794179, 0.606099, 0.583072, 0.664272, 0.531965, 0.649188];
+const EMP=[0.005639478, 0.000399201, 0.001366132, 0.001516026, 0.001516026, 0.001084864, 0.004615291, 0.001579281, 0.004615291, 0.001579281, 0.000975769, 0.000975769, 0.000975769, 0.007215018, 0.007215018, 0.007215018, 0.007215018];
+const YEARS=[2016,2017,2018,2019,2020,2021,2022,2023,2024,2025];
+function matInv(M){let A=M.map((r,i)=>[...r,...Array.from({length:NN},(_,j)=>i===j?1:0)]);
+  for(let c=0;c<NN;c++){let p=c;for(let r=c+1;r<NN;r++)if(Math.abs(A[r][c])>Math.abs(A[p][c]))p=r;[A[c],A[p]]=[A[p],A[c]];
+    let d=A[c][c]||1e-12;for(let j=0;j<2*NN;j++)A[c][j]/=d;
+    for(let r=0;r<NN;r++){if(r===c)continue;let f=A[r][c];for(let j=0;j<2*NN;j++)A[r][j]-=f*A[c][j];}}
+  return A.map(r=>r.slice(NN));}
+function rasFit(Z,u,v){let M=Z.map(r=>[...r]);
+  for(let it=0;it<20000;it++){for(let i=0;i<NN;i++){let rs=M[i].reduce((a,x)=>a+x,0)||1e-15;for(let j=0;j<NN;j++)M[i][j]*=u[i]/rs;}
+    for(let j=0;j<NN;j++){let cs=0;for(let i=0;i<NN;i++)cs+=M[i][j];cs=cs||1e-15;for(let i=0;i<NN;i++)M[i][j]*=v[j]/cs;}
+    let res=0;for(let i=0;i<NN;i++){let rs=M[i].reduce((a,x)=>a+x,0);res=Math.max(res,Math.abs(rs-u[i]));}
+    if(res<1e-8)break;}return M;}
+const _u0=RAS_Z0.map(r=>r.reduce((a,x)=>a+x,0));
+const _v0=Array.from({length:NN},(_,j)=>RAS_Z0.reduce((a,r)=>a+r[j],0));
+function computeYear(t){const g=RAS_PDRB.map((r,i)=>r[t]/(RAS_PDRB[i][0]||1e-9));
+  let u=_u0.map((x,i)=>x*g[i]),v=_v0.map((x,i)=>x*g[i]);
+  const su=u.reduce((a,x)=>a+x,0),sv=v.reduce((a,x)=>a+x,0)||1e-9;v=v.map(x=>x*su/sv);
+  const Z=rasFit(RAS_Z0,u,v),x=RAS_X0.map((xx,i)=>xx*g[i]);
+  const A=Z.map(r=>r.map((z,j)=>z/(x[j]||1e-9)));
+  const IA=A.map((r,i)=>r.map((a,j)=>(i===j?1:0)-a));const L=matInv(IA);
+  const out=Array.from({length:NN},(_,j)=>L.reduce((a,r)=>a+r[j],0));return {out,L};}
+const yearData=YEARS.map((y,t)=>computeYear(t));
+const EMPMULT_C_2016=EMP.reduce((a,e2,i)=>a+e2*yearData[0].L[i][2],0);
+let rasYear=9;                       // index tahun (9=2025)
+function curL(){return yearData[rasYear].L;}
+let shockChart, shockSector=2, rasChart;
+
+function initShockChart(){
+  shockChart=new Chart(el('shockChart'),{type:'bar',
+    data:{labels:[],datasets:[{data:[],backgroundColor:'#2f8f83',borderRadius:5,barThickness:18}]},
+    options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>'Rp'+fmt.format(c.raw)+' miliar'}}},
+      scales:{x:{beginAtZero:true,grid:{color:'#e7ede8'},ticks:{callback:v=>fmt.format(v),font:{family:'IBM Plex Mono',size:10},color:'#5c6b62'}},
+              y:{grid:{display:false},ticks:{font:{family:'IBM Plex Sans',size:11},color:'#12271f'}}}}});
+}
+function initShockUI(){
+  const sel=el('shockSector');
+  NAMES.forEach((nm,i)=>{const o=document.createElement('option');o.value=i;o.textContent=CODES[i]+' · '+nm;sel.appendChild(o);});
+  sel.value=shockSector;
+  sel.addEventListener('change',e=>{shockSector=+e.target.value;renderShock();});
+  el('shock').addEventListener('input',renderShock);
+}
+function renderShock(){
+  const amt=+el('shock').value, dF=amt*1e9, j=shockSector;
+  const L=curL();const dX=L.map(row=>row[j]*dF);
+  const totalOut=dX.reduce((a,b)=>a+b,0);
+  const direct=dX[j], indirect=totalOut-direct;
+  const pdrb=dX.reduce((a,x,i)=>a+x*Vcoef[i],0);
+  el('shOut').textContent=rupiahBig(totalOut);
+  el('shMult').textContent='pengganda '+(totalOut/dF).toFixed(3)+'×';
+  el('shPdrb').textContent=rupiahBig(pdrb);
+  el('shIndir').textContent=rupiahBig(indirect);
+  const jobs=dX.reduce((a,v,i)=>a+EMP[i]*v/1e6,0);
+  el('shJobs').textContent=fmt.format(Math.round(jobs))+' orang';
+  el('vShock').textContent=fmt.format(amt);
+  const p=((amt-50)/(2000-50))*100;
+  el('shock').style.background=`linear-gradient(to right,var(--tide) 0%,var(--tide) ${p}%,var(--line) ${p}%,var(--line) 100%)`;
+  const idx=dX.map((v,i)=>i).sort((a,b)=>dX[b]-dX[a]).slice(0,8);
+  shockChart.data.labels=idx.map(i=>NAMES[i]);
+  shockChart.data.datasets[0].data=idx.map(i=>Math.round(dX[i]/1e9));
+  shockChart.data.datasets[0].backgroundColor=idx.map(i=>i===j?'#0e3a34':'#2f8f83');
+  shockChart.update();
+}
+
+/* ---- Modul RAS: chart evolusi + kontrol tahun ---- */
+function initRasChart(){
+  const sA=yearData.map(d=>d.out[0]),sB=yearData.map(d=>d.out[1]),sC=yearData.map(d=>d.out[2]);
+  rasChart=new Chart(el('rasChart'),{type:'line',
+    data:{labels:YEARS,datasets:[
+      {label:'C Industri Pengolahan',data:sC,borderColor:'#d8a038',borderWidth:2.4,tension:.3,pointRadius:YEARS.map((y,i)=>i===rasYear?6:3),pointBackgroundColor:'#d8a038'},
+      {label:'B Pertambangan',data:sB,borderColor:'#b4462f',borderWidth:2,tension:.3,pointRadius:YEARS.map((y,i)=>i===rasYear?6:3),pointBackgroundColor:'#b4462f'},
+      {label:'A Pertanian/Perikanan',data:sA,borderColor:'#12271f',borderWidth:2,tension:.3,pointRadius:YEARS.map((y,i)=>i===rasYear?6:3),pointBackgroundColor:'#12271f'}
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
+      plugins:{legend:{display:true,labels:{font:{family:'IBM Plex Sans',size:10},color:'#33413a',boxWidth:14}},
+        tooltip:{callbacks:{label:c=>c.dataset.label+': '+c.raw.toFixed(3)}}},
+      scales:{x:{grid:{display:false},ticks:{font:{family:'IBM Plex Mono',size:9},color:'#5c6b62'}},
+              y:{grid:{color:'#e7ede8'},ticks:{font:{family:'IBM Plex Mono',size:10},color:'#5c6b62'}}}}});
+}
+function renderRas(){
+  const d=yearData[rasYear],y=YEARS[rasYear];
+  el('rasC').textContent=d.out[2].toFixed(3);
+  el('rasA').textContent=d.out[0].toFixed(3);
+  el('rasB').textContent=d.out[1].toFixed(3);
+  el('rasGap').textContent='+'+(d.out[2]-d.out[0]).toFixed(3);
+  el('rasCsub').textContent='hilirisasi · tahun '+y;
+  el('vRasYear').textContent=y;
+  const p=((y-2016)/(2025-2016))*100;
+  el('rasYear').style.background=`linear-gradient(to right,var(--tide) 0%,var(--tide) ${p}%,var(--line) ${p}%,var(--line) 100%)`;
+  if(rasChart){rasChart.data.datasets.forEach(ds=>ds.pointRadius=YEARS.map((yy,i)=>i===rasYear?6:3));rasChart.update();}
+  el('shockYearLbl').textContent=y;
+  renderShock();
+}
+el('rasYear').addEventListener('input',e=>{rasYear=(+e.target.value)-2016;renderRas();});
+
+/* ==== Situs statis: metrik data, tabel, profil sektor, unduh CSV ==== */
+const A16=RAS_Z0.map((r)=>r.map((z,j)=>z/(RAS_X0[j]||1e-9)));
+const L16=yearData[0].L, out16=yearData[0].out;
+const vaMult16=Array.from({length:NN},(_,j)=>{let s=0;for(let i=0;i<NN;i++)s+=Vcoef[i]*L16[i][j];return s;});
+const empMult16=Array.from({length:NN},(_,j)=>{let s=0;for(let i=0;i<NN;i++)s+=EMP[i]*L16[i][j];return s;});
+const _mo=out16.reduce((a,x)=>a+x,0)/NN; const BL16=out16.map(o=>o/_mo);
+const Bg=RAS_Z0.map((r,i)=>r.map(z=>z/(RAS_X0[i]||1e-9)));
+const Gg=matInv(Bg.map((r,i)=>r.map((b,j)=>(i===j?1:0)-b)));
+const _fl=Gg.map(r=>r.reduce((a,x)=>a+x,0)); const _mf=_fl.reduce((a,x)=>a+x,0)/NN; const FL16=_fl.map(f=>f/_mf);
+function tipeOf(i){return BL16[i]>1&&FL16[i]>1?'Leading':BL16[i]>1?'Hilir/pendorong':FL16[i]>1?'Hulu/penarik':'Tertinggal';}
+function fx(v,d){return v.toFixed(d);}
+function renderMultTable(){
+  let h='<thead><tr><th>Sektor</th><th>Pengganda output</th><th>Pengganda nilai tambah</th><th>Backward</th><th>Forward</th><th>Pengganda TK /miliar</th><th>Tipe</th></tr></thead><tbody>';
+  for(let i=0;i<NN;i++){h+='<tr><td>'+CODES[i]+'. '+NAMES[i]+'</td><td class="num">'+fx(out16[i],3)+'</td><td class="num">'+fx(vaMult16[i],3)+'</td><td class="num">'+fx(BL16[i],2)+'</td><td class="num">'+fx(FL16[i],2)+'</td><td class="num">'+fx(empMult16[i]*1000,2)+'</td><td>'+tipeOf(i)+'</td></tr>';}
+  el('tblMult').innerHTML=h+'</tbody>';
+}
+function renderRasTable(){
+  let h='<thead><tr><th>Sektor</th>';YEARS.forEach(y=>h+='<th class="num">'+y+'</th>');h+='</tr></thead><tbody>';
+  for(let i=0;i<NN;i++){h+='<tr><td>'+CODES[i]+'. '+NAMES[i]+'</td>';YEARS.forEach((y,t)=>h+='<td class="num">'+fx(yearData[t].out[i],3)+'</td>');h+='</tr>';}
+  el('tblRas').innerHTML=h+'</tbody>';
+}
+function downloadCSV(name,header,rows){
+  const esc=v=>'"'+String(v).replace(/"/g,'""')+'"';
+  const csv=[header.map(esc).join(','),...rows.map(r=>r.map(esc).join(','))].join('\n');
+  const b=new Blob([csv],{type:'text/csv;charset=utf-8;'});const a=document.createElement('a');
+  a.href=URL.createObjectURL(b);a.download=name;a.click();
+}
+function dlMult(){const rows=[];for(let i=0;i<NN;i++)rows.push([CODES[i],NAMES[i],out16[i].toFixed(4),vaMult16[i].toFixed(4),BL16[i].toFixed(4),FL16[i].toFixed(4),(empMult16[i]*1000).toFixed(4),tipeOf(i)]);
+  downloadCSV('pengganda_kaltara_2016.csv',['Kode','Sektor','Pengganda_output','Pengganda_NT','Backward','Forward','Pengganda_TK_per_miliar','Tipe'],rows);}
+function dlRas(){const rows=[];for(let i=0;i<NN;i++)rows.push([CODES[i],NAMES[i],...YEARS.map((y,t)=>yearData[t].out[i].toFixed(4))]);
+  downloadCSV('ras_pengganda_2016_2025.csv',['Kode','Sektor',...YEARS],rows);}
+function initProfil(){
+  const s=el('profilSektor');NAMES.forEach((nm,i)=>{const o=document.createElement('option');o.value=i;o.textContent=CODES[i]+' · '+nm;s.appendChild(o);});
+  s.value=2;s.addEventListener('change',()=>renderProfil(+s.value));renderProfil(2);
+}
+function renderProfil(j){
+  // pemasok utama sektor j = A16[i][j] terbesar (input dari i per unit output j)
+  const colsum=Array.from({length:NN},(_,i)=>A16[i][j]).reduce((a,x)=>a+x,0)||1e-9;
+  const sup=Array.from({length:NN},(_,i)=>({i,a:A16[i][j]})).filter(o=>o.i!==j&&o.a>0).sort((x,y)=>y.a-x.a).slice(0,5);
+  let box='<div class="prof-grid">'+
+    '<div class="c"><div class="l">Pengganda output</div><div class="v">'+fx(out16[j],3)+'</div></div>'+
+    '<div class="c"><div class="l">Pengganda nilai tambah</div><div class="v">'+fx(vaMult16[j],3)+'</div></div>'+
+    '<div class="c"><div class="l">Pengganda TK /miliar</div><div class="v">'+fx(empMult16[j]*1000,2)+'</div></div>'+
+    '<div class="c"><div class="l">Backward linkage</div><div class="v">'+fx(BL16[j],2)+'</div></div>'+
+    '<div class="c"><div class="l">Forward linkage</div><div class="v">'+fx(FL16[j],2)+'</div></div>'+
+    '<div class="c"><div class="l">Tipe sektor</div><div class="v" style="font-size:15px">'+tipeOf(j)+'</div></div>'+
+    '</div>';
+  box+='<div class="eyebrow" style="margin-top:6px">5 pemasok utama (keterkaitan ke belakang)</div>';
+  box+='<div class="tblwrap"><table class="sup"><thead><tr><th>Sektor pemasok</th><th class="num">Input per Rp1 output</th><th class="num">Porsi input antara</th></tr></thead><tbody>';
+  sup.forEach(o=>{box+='<tr><td>'+CODES[o.i]+'. '+NAMES[o.i]+'</td><td class="num">'+o.a.toFixed(4)+'</td><td class="num">'+(o.a/colsum*100).toFixed(1)+'%</td></tr>';});
+  box+='</tbody></table></div>';
+  el('profilBox').innerHTML=box;
+}
+renderMultTable();renderRasTable();initProfil();
+/* ==== Modul dampak ekonomi per sektor (PDRB/PAD/jobs) ==== */
+let dmpSort='pdrb';
+function renderDampak(){
+  const amt=+el('dmp').value; el('vDmp').textContent=fmt.format(amt); el('dmpLbl').textContent=fmt.format(amt);
+  const p=((amt-10)/(1000-10))*100;
+  el('dmp').style.background='linear-gradient(to right,var(--tide) 0%,var(--tide) '+p+'%,var(--line) '+p+'%,var(--line) 100%)';
+  const ar=amt*1e9, R=[];
+  for(let j=0;j<NN;j++)R.push({j,out:out16[j]*ar,pdrb:vaMult16[j]*ar,pad:vaMult16[j]*ar*0.015,jobs:empMult16[j]*amt*1000});
+  R.sort((a,b)=>b[dmpSort]-a[dmpSort]);
+  const maxv=Math.max.apply(null,R.map(r=>r[dmpSort]))||1;
+  let h='<thead><tr><th>Sektor</th><th class="num">Δ Output</th><th class="num">Δ PDRB</th><th class="num">Δ PAD</th><th class="num">Δ Lap. kerja</th></tr></thead><tbody>';
+  R.forEach(r=>{const w=Math.round(r[dmpSort]/maxv*100);
+    h+='<tr><td>'+CODES[r.j]+'. '+NAMES[r.j]+'</td>'+
+       '<td class="num">'+rupiahBig(r.out)+'</td>'+
+       '<td class="num" style="background:linear-gradient(to left,rgba(216,160,56,.18) '+(dmpSort==='pdrb'?w:0)+'%,transparent 0)">'+rupiahBig(r.pdrb)+'</td>'+
+       '<td class="num">'+rupiahBig(r.pad)+'</td>'+
+       '<td class="num">'+fmt.format(Math.round(r.jobs))+' org</td></tr>';});
+  el('tblDampak').innerHTML=h+'</tbody>';
+}
+function markSort(){el('sortBtns').querySelectorAll('.sortb').forEach(b=>b.classList.toggle('on',b.dataset.k===dmpSort));}
+function initDampak(){
+  const defs=[['out','Output'],['pdrb','PDRB'],['pad','PAD'],['jobs','Lapangan kerja']];
+  el('sortBtns').innerHTML=defs.map(d=>'<button class="sortb" data-k="'+d[0]+'">'+d[1]+'</button>').join('');
+  el('sortBtns').querySelectorAll('.sortb').forEach(b=>b.addEventListener('click',function(){dmpSort=b.dataset.k;markSort();renderDampak();}));
+  el('dmp').addEventListener('input',renderDampak);
+  markSort();renderDampak();
+}
+initDampak();
+initBar();initQuad();initPrice();initShockChart();initShockUI();initRasChart();render();renderRas();
+</script>
+</body>
+</html>
