@@ -86,7 +86,7 @@
   .kpi{background:var(--paper);border:1px solid var(--line);border-radius:9px;padding:15px 16px;position:relative;overflow:hidden}
   .kpi::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px}
   .kpi.gold::before{background:var(--gold)}.kpi.tide::before{background:var(--tide)}
-  .kpi.sea::before{background:var(--sea)}.kpi.leaf::before{background:var(--tide-dk)}
+  .kpi.sea::before{background:var(--sea)}.kpi.leaf::before{background:var(--tide-dk)}.kpi.leak::before{background:var(--leak)}
   .kpi .k-lab{font-size:11.5px;color:var(--muted);letter-spacing:.02em;margin-bottom:6px;min-height:30px}
   .kpi .k-val{font-family:"Archivo";font-weight:700;font-size:23px;line-height:1;letter-spacing:-.01em}
   .kpi .k-sub{font-family:"IBM Plex Mono";font-size:11px;color:var(--muted);margin-top:5px}
@@ -150,7 +150,7 @@
 
   .nav{position:sticky;top:0;z-index:30;background:rgba(14,58,52,.97);backdrop-filter:blur(6px);border-bottom:1px solid rgba(255,255,255,.08)}
   .nav .wrap{display:flex;gap:2px;flex-wrap:wrap;padding:7px 20px}
-  .nav a{color:#cfe3dc;font-family:"IBM Plex Mono";font-size:11px;letter-spacing:.05em;text-transform:uppercase;text-decoration:none;padding:6px 10px;border-radius:5px;transition:.15s}
+  .nav a{cursor:pointer;color:#cfe3dc;font-family:"IBM Plex Mono";font-size:11px;letter-spacing:.05em;text-transform:uppercase;text-decoration:none;padding:6px 10px;border-radius:5px;transition:.15s}
   .nav a:hover{background:rgba(255,255,255,.09);color:#fff}
   .dlbtn{display:inline-block;font-family:"IBM Plex Mono";font-size:11px;letter-spacing:.05em;text-transform:uppercase;background:var(--tide);color:#fff;border:none;padding:8px 14px;border-radius:6px;cursor:pointer;margin-top:12px}
   .dlbtn:hover{background:var(--tide-dk)}
@@ -182,8 +182,8 @@
 <div class="engine-strip"><div class="wrap">⚙ Ditenagai <b>Tabel Input-Output BPS Kalimantan Utara 2016</b> (17 sektor) · pengganda Leontief + pemutakhiran RAS</div></div>
 
 <nav class="nav"><div class="wrap">
-  <a href="#beranda">Beranda</a><a href="#data">Data &amp; Unduh</a><a href="#profil">Profil Sektor</a>
-  <a href="#model">Model RAS</a><a href="#simulator">Simulator Shock</a><a href="#dampak">Dampak Sektor</a><a href="#metode">Metodologi</a>
+  <a class="navjs" onclick="goto(\'beranda\')">Beranda</a><a class="navjs" onclick="goto(\'data\')">Data &amp; Unduh</a><a class="navjs" onclick="goto(\'profil\')">Profil Sektor</a>
+  <a class="navjs" onclick="goto(\'model\')">Model RAS</a><a class="navjs" onclick="goto(\'simulator\')">Simulator Shock</a><a class="navjs" onclick="goto(\'dampak\')">Dampak Sektor</a><a class="navjs" onclick="goto(\'irio\')">IRIO</a><a class="navjs" onclick="goto(\'metode\')">Metodologi</a>
 </div></nav>
 <main>
 <div class="wrap">
@@ -391,9 +391,36 @@
     </div>
   </section>
 
+  <!-- IRIO -->
+  <section id="irio">
+    <div class="sec-head"><span class="n">08</span><h2>Analisis IRIO — kebocoran antar-provinsi</h2></div>
+    <div class="card panel">
+      <div class="eyebrow">Berapa banyak dampak ekonomi Kaltara justru mengalir ke provinsi lain</div>
+      <div class="kpis" style="margin-top:10px">
+        <div class="kpi sea"><div class="k-lab">Pengganda output total</div><div class="k-val">1,586</div><div class="k-sub">efek ekonomi menyeluruh</div></div>
+        <div class="kpi tide"><div class="k-lab">Tinggal di Kaltara</div><div class="k-val">1,266</div><div class="k-sub">bagian intra</div></div>
+        <div class="kpi leak"><div class="k-lab">Bocor ke provinsi lain</div><div class="k-val">0,320</div><div class="k-sub">spillover</div></div>
+        <div class="kpi gold"><div class="k-lab">Kebocoran rata-rata</div><div class="k-val">18,8%</div><div class="k-sub">tertimbang 20,2%</div></div>
+      </div>
+      <div class="note">Dari Tabel IRIO BPS 2016 (34 provinsi × 52 industri). Rekonsiliasi: pembelian antar-provinsi Kaltara = Rp16,08 T — sama persis dengan impor antar-provinsi di tabel single-region.</div>
+    </div>
+    <div class="io" style="margin-top:16px">
+      <div class="card panel">
+        <div class="eyebrow">Peta dagang antara · mitra utama (Rp miliar)</div>
+        <div class="chartbox tall" style="margin-top:10px"><canvas id="irioTrade"></canvas></div>
+      </div>
+      <div class="card panel">
+        <div class="eyebrow">Dekomposisi pengganda per industri</div>
+        <select id="irioSektor" class="sel" style="margin:12px 0"></select>
+        <div id="irioBox"></div>
+        <div class="note">Output <b>Perikanan</b> Kaltara (tempat rumput laut) diserap terutama Industri Makanan-Minuman — sekitar Rp1 T mengalir ke Jawa untuk diolah di sana. Bahan mentah keluar, nilai tambah ditangkap provinsi lain.</div>
+      </div>
+    </div>
+  </section>
+
   <!-- PRICE + ZONASI -->
   <section>
-    <div class="sec-head"><span class="n">08</span><h2>Prediksi harga &amp; peta komoditas</h2></div>
+    <div class="sec-head"><span class="n">09</span><h2>Prediksi harga &amp; peta komoditas</h2></div>
     <div class="row2">
       <div class="card panel">
         <div class="eyebrow">Harga rumput laut kering · Rp/kg</div>
@@ -435,7 +462,7 @@
 
   <!-- METODOLOGI -->
   <section id="metode">
-    <div class="sec-head"><span class="n">09</span><h2>Metodologi &amp; sumber</h2></div>
+    <div class="sec-head"><span class="n">10</span><h2>Metodologi &amp; sumber</h2></div>
     <div class="card panel metode">
       <div class="eyebrow">Sumber data</div>
       <p><b>Tabel Input-Output BPS Kaltara 2016</b> (17 lapangan usaha, transaksi domestik) · <b>PDRB harga berlaku 2016–2025</b> (BPS) · <b>Sakernas / Tabel 10.3 Penduduk Bekerja</b> Agustus 2016 (BPS).</p>
@@ -479,6 +506,7 @@ const OLAH_NOW=0.03,EKSPOR_NOW=0.10;
 const PAD_RATE=0.015,PRODUCTIVITY=180e6,PETANI_MAX=0.15;
 
 const el=id=>document.getElementById(id);
+function goto(id){var e=document.getElementById(id);if(e)e.scrollIntoView({behavior:"smooth",block:"start"});}
 const state={...DEF};
 
 function compute(){
@@ -765,6 +793,36 @@ function renderProfil(j){
   el('profilBox').innerHTML=box;
 }
 renderMultTable();renderRasTable();initProfil();
+/* ==== Modul IRIO (data precompute dari Tabel IRIO BPS 2016) ==== */
+const IRIO_IND=["Pertanian TP", "Hortikultura", "Perkebunan", "Peternakan", "Jasa Pertanian", "Kehutanan", "Perikanan", "Migas", "Batubara", "Bijih Logam", "Galian Lain", "Pengilangan Migas", "Makanan-Minuman", "Tembakau", "Tekstil", "Kulit", "Kayu", "Kertas", "Kimia-Farmasi", "Karet-Plastik", "Galian bkn Logam", "Logam Dasar", "Barang Logam", "Mesin", "Alat Angkut", "Furnitur", "Pengolahan Lain", "Ketenagalistrikan", "Gas", "Air", "Konstruksi", "Dagang Mobil", "Dagang Besar", "Angkutan Rel", "Angkutan Darat", "Angkutan Laut", "Angkutan Sungai", "Angkutan Udara", "Pergudangan", "Akomodasi", "Makan Minum", "Infokom", "Perantara Keu", "Asuransi", "Keu Lain", "Jasa Penunjang Keu", "Real Estate", "Jasa Perusahaan", "Adm Pemerintahan", "Pendidikan", "Kesehatan", "Jasa Lainnya"];const IRIO_CODE=["I-01", "I-02", "I-03", "I-04", "I-05", "I-06", "I-07", "I-08", "I-09", "I-10", "I-11", "I-12", "I-13", "I-14", "I-15", "I-16", "I-17", "I-18", "I-19", "I-20", "I-21", "I-22", "I-23", "I-24", "I-25", "I-26", "I-27", "I-28", "I-29", "I-30", "I-31", "I-32", "I-33", "I-34", "I-35", "I-36", "I-37", "I-38", "I-39", "I-40", "I-41", "I-42", "I-43", "I-44", "I-45", "I-46", "I-47", "I-48", "I-49", "I-50", "I-51", "I-52"];const IRIO_T=[1.2325, 1.2258, 1.4884, 1.3302, 1.2664, 1.3092, 1.2473, 1.5159, 1.5148, 1.3725, 1.3404, 1.0, 1.6045, 1.0, 1.9234, 1.7703, 1.7505, 2.0494, 1.5359, 1.5958, 1.5885, 1.0, 1.6633, 1.5572, 1.7166, 1.7191, 1.7462, 3.2662, 1.9358, 1.7997, 1.6363, 1.5512, 1.5107, 1.0, 1.738, 2.0377, 1.7255, 1.9861, 1.8122, 1.5515, 1.8576, 1.6594, 1.2773, 1.4944, 1.4334, 1.5278, 1.3331, 1.6596, 1.723, 1.5464, 1.7676, 1.5683];const IRIO_I=[1.1129, 1.108, 1.2862, 1.1598, 1.1091, 1.1738, 1.1827, 1.2686, 1.2741, 1.0484, 1.1462, 1.0, 1.3945, 1.0, 1.192, 1.2666, 1.5178, 1.2491, 1.3179, 1.0973, 1.4016, 1.0, 1.2138, 1.1883, 1.2715, 1.2425, 1.2053, 2.6259, 1.6965, 1.1936, 1.2412, 1.2955, 1.2281, 1.0, 1.3013, 1.4641, 1.2711, 1.2069, 1.2793, 1.2833, 1.3826, 1.2785, 1.1406, 1.281, 1.2598, 1.3157, 1.1985, 1.2232, 1.3115, 1.2396, 1.3411, 1.3417];const IRIO_S=[0.1196, 0.1178, 0.2022, 0.1704, 0.1573, 0.1354, 0.0646, 0.2473, 0.2407, 0.3241, 0.1941, 0.0, 0.21, 0.0, 0.7314, 0.5037, 0.2327, 0.8003, 0.2179, 0.4985, 0.1869, 0.0, 0.4495, 0.3689, 0.4451, 0.4767, 0.5409, 0.6403, 0.2393, 0.606, 0.3951, 0.2557, 0.2826, 0.0, 0.4366, 0.5736, 0.4545, 0.7792, 0.5329, 0.2683, 0.475, 0.381, 0.1367, 0.2133, 0.1736, 0.2122, 0.1346, 0.4364, 0.4115, 0.3068, 0.4265, 0.2267];const IRIO_PROV=["Aceh", "Sumut", "Sumbar", "Riau", "Jambi", "Sumsel", "Bengkulu", "Lampung", "Babel", "Kepri", "DKI Jakarta", "Jabar", "Jateng", "DIY", "Jatim", "Banten", "Bali", "NTB", "NTT", "Kalbar", "Kalteng", "Kalsel", "Kaltim", "Kaltara", "Sulut", "Sulteng", "Sulsel", "Sultra", "Gorontalo", "Sulbar", "Maluku", "Malut", "Pabar", "Papua"];const IRIO_SALES=[17931.4, 186970.3, 33781.8, 636945.6, 32190.5, 107203.8, 22452.3, 101189.5, 10413.8, 50307.3, 1717956.7, 1685871.5, 1922718.2, 110616.4, 3289733.6, 207635.1, 62910.0, 26225.3, 39843.7, 39420.5, 183319.2, 627540.6, 5813726.5, 23238995.3, 492637.0, 579998.4, 907262.8, 52003.0, 7699.8, 118467.4, 40299.6, 9257.6, 36135.1, 52236.8];const IRIO_BUYS=[19783.6, 464447.7, 71500.5, 15614.5, 35776.1, 39423.3, 14341.6, 103302.5, 8562.7, 80403.8, 2849080.6, 199445.5, 134436.9, 121652.1, 1997459.0, 1612814.2, 265614.4, 48070.9, 27338.3, 59632.3, 910773.2, 185186.3, 3342527.4, 23238995.3, 1616803.7, 511940.9, 1001372.2, 25334.2, 19037.3, 224586.9, 23964.4, 8106.3, 6649.9, 35485.2];const IRIO_KAL=23;
+let irioTradeChart;
+function initIrioTrade(){
+  const idx=IRIO_PROV.map((_,p)=>p).filter(p=>p!==IRIO_KAL).sort((a,b)=>(IRIO_SALES[b]+IRIO_BUYS[b])-(IRIO_SALES[a]+IRIO_BUYS[a])).slice(0,8);
+  irioTradeChart=new Chart(el('irioTrade'),{type:'bar',
+    data:{labels:idx.map(p=>IRIO_PROV[p]),datasets:[
+      {label:'Kaltara jual ke',data:idx.map(p=>Math.round(IRIO_SALES[p]/1000)),backgroundColor:'#2f8f83'},
+      {label:'Kaltara beli dari',data:idx.map(p=>Math.round(IRIO_BUYS[p]/1000)),backgroundColor:'#b4462f'}
+    ]},
+    options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:true,labels:{font:{family:'IBM Plex Sans',size:10},color:'#33413a',boxWidth:12}},
+        tooltip:{callbacks:{label:c=>c.dataset.label+': Rp'+fmt.format(c.raw)+' M'}}},
+      scales:{x:{beginAtZero:true,grid:{color:'#e7ede8'},ticks:{callback:v=>fmt.format(v),font:{family:'IBM Plex Mono',size:9},color:'#5c6b62'}},
+              y:{grid:{display:false},ticks:{font:{family:'IBM Plex Sans',size:11},color:'#12271f'}}}}});
+}
+function renderIrioSektor(j){
+  const t=IRIO_T[j],iv=IRIO_I[j],s=IRIO_S[j],leak=t>0?s/t*100:0;
+  el('irioBox').innerHTML='<div class="prof-grid">'+
+    '<div class="c"><div class="l">Pengganda total</div><div class="v">'+t.toFixed(3)+'</div></div>'+
+    '<div class="c"><div class="l">Intra (Kaltara)</div><div class="v">'+iv.toFixed(3)+'</div></div>'+
+    '<div class="c"><div class="l">Spillover (bocor)</div><div class="v" style="color:var(--leak)">'+s.toFixed(3)+'</div></div>'+
+    '</div><div class="io-note" style="margin-top:2px">'+Math.round(leak)+'% dampak sektor ini bocor ke provinsi lain.</div>';
+}
+function initIrioSektor(){
+  const sel=el('irioSektor');
+  IRIO_IND.forEach((nm,i)=>{const o=document.createElement('option');o.value=i;o.textContent=IRIO_CODE[i]+' · '+nm;sel.appendChild(o);});
+  sel.value=6;sel.addEventListener('change',()=>renderIrioSektor(+sel.value));renderIrioSektor(6);
+}
+initIrioTrade();initIrioSektor();
 /* ==== Modul dampak ekonomi per sektor (PDRB/PAD/jobs) ==== */
 let dmpSort='pdrb';
 function renderDampak(){
